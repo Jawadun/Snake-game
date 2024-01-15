@@ -9,7 +9,7 @@ using namespace std;
 int dir = 0;
 int run = 1;
 int snakeSize = 20;
-int score = 0; 
+int score = 0, High = 0; 
 deque<SDL_Rect> rq;
 vector<SDL_Rect> food;
 SDL_Rect head {400,300,20,20};
@@ -116,6 +116,7 @@ void update() {
             head.y + head.h > it->y) {
             ::snakeSize += 20;
             score += 1; 
+            
             it = food.erase(it);
             SDL_Rect newFoodRect{rand() % 780, rand() % 580, 20, 20};
             food.emplace_back(newFoodRect);
@@ -129,7 +130,7 @@ for_each(rq.begin(), rq.end(), [&](auto &snake_segment) {
         head.x = 400;
         head.y = 300;
         dir = 0;
-       
+        
     }
 
 });
@@ -145,6 +146,13 @@ for_each(rq.begin(), rq.end(), [&](auto &snake_segment) {
         head.x = 400;
         head.y = 300;
         dir = 0;
+        cout << " Score: " << score << endl;
+        if(High < score)
+        {
+            High = score;
+        }
+        cout << "High score: " << High << endl;
+        score = 0;
     }
 
     if (head.x < wallRect2.x + wallRect2.w &&
@@ -155,6 +163,13 @@ for_each(rq.begin(), rq.end(), [&](auto &snake_segment) {
         head.x = 400;
         head.y = 300;
         dir = 0;
+        cout << " Score: " << score << endl;
+         if(High < score)
+        {
+            High = score;
+        }
+        cout << "High score: " << High << endl;
+         score = 0;
     }
 
     if (head.x < wallRect3.x + wallRect3.w &&
@@ -165,9 +180,21 @@ for_each(rq.begin(), rq.end(), [&](auto &snake_segment) {
         head.x = 400;
         head.y = 300;
         dir = 0;
+        cout << " Score: " << score << endl;
+         if(High < score)
+        {
+            High = score;
+        }
+        cout << "High score: " << High << endl;
+         score = 0;
     }
     for (auto it = food.begin(); it != food.end(); ) {
         bool collisionWithWall = false;
+
+        if(it ->x >=780 || it->x <=20 || it->y >= 580 || it->y <=20)
+        {
+            collisionWithWall = true;
+        }
 
     
         if (it->x < wallRect1.x + wallRect1.w &&
@@ -207,6 +234,13 @@ if(head.x == 780 || head.x == 20 || head.y == 20 || head.y == 580)
         head.x = 400;
         head.y = 300;
         dir = 0;
+         cout << " Score: " << score << endl;
+          if(High < score)
+        {
+            High = score;
+        }
+        cout << "High score: " << High << endl;
+          score = 0;
 }
 rq.push_front(head);
 while(rq.size() > snakeSize)
@@ -275,9 +309,8 @@ int main(int argc, char* argv[]) {
         processInput();
         update();
         render();
-     
     }
-    cout << "Final Score: " << score; 
+     
 
     destroyWindow();
     return 0;
