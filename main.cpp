@@ -23,11 +23,6 @@ int initializeWindow() {
         cerr << "SDL initialization error: " << SDL_GetError() << endl;
         return 0;
     }
-    /* if (TTF_Init() != 0) {
-        cerr << "SDL_ttf initialization error: " << TTF_GetError() << endl;
-        SDL_Quit();
-        return 0;
-    }*/
 
     window = SDL_CreateWindow(NULL , SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_BORDERLESS);
     if (!window) {
@@ -40,18 +35,9 @@ int initializeWindow() {
         cerr << "Error creating renderer: " << SDL_GetError() << endl;
         return 0;
     }
-    SDL_Rect initialFoodRect{rand() % 780, rand() % 580, 20, 20};
+    SDL_Rect initialFoodRect{rand() % 750, rand() % 550, 20, 20};
     food.emplace_back(initialFoodRect);
-    /* font = TTF_OpenFont("path/to/your/font.ttf", 24);  // Provide the path to your TTF font
-    if (!font) {
-        cerr << "Error loading font: " << TTF_GetError() << endl;
-        TTF_Quit();
-        SDL_DestroyRenderer(renderer);
-        SDL_DestroyWindow(window);
-        SDL_Quit();
-        return 0;
-    }*/
-
+    
 
     return 1;
 }
@@ -129,6 +115,7 @@ void update() {
             head.y < it->y + it->h &&
             head.y + head.h > it->y) {
             ::snakeSize += 20;
+            score += 1; 
             it = food.erase(it);
             SDL_Rect newFoodRect{rand() % 780, rand() % 580, 20, 20};
             food.emplace_back(newFoodRect);
@@ -139,14 +126,82 @@ void update() {
 for_each(rq.begin(), rq.end(), [&](auto &snake_segment) {
     if (head.x == snake_segment.x && head.y == snake_segment.y) {
         ::snakeSize = 20; 
-        //score += 10; 
         head.x = 400;
         head.y = 300;
-        dir = 0; 
+        dir = 0;
+       
     }
 
 });
-if(head.x == 800 || head.x == 0 || head.y == 0 || head.y == 600)
+    SDL_Rect wallRect1{300, 200, 20, 200};
+    SDL_Rect wallRect2{300, 200, 200, 20};
+    SDL_Rect wallRect3{500, 200, 20, 200};
+
+    if (head.x < wallRect1.x + wallRect1.w &&
+        head.x + head.w > wallRect1.x &&
+        head.y < wallRect1.y + wallRect1.h &&
+        head.y + head.h > wallRect1.y) {
+        ::snakeSize = 20;
+        head.x = 400;
+        head.y = 300;
+        dir = 0;
+    }
+
+    if (head.x < wallRect2.x + wallRect2.w &&
+        head.x + head.w > wallRect2.x &&
+        head.y < wallRect2.y + wallRect2.h &&
+        head.y + head.h > wallRect2.y) {
+        ::snakeSize = 20;
+        head.x = 400;
+        head.y = 300;
+        dir = 0;
+    }
+
+    if (head.x < wallRect3.x + wallRect3.w &&
+        head.x + head.w > wallRect3.x &&
+        head.y < wallRect3.y + wallRect3.h &&
+        head.y + head.h > wallRect3.y) {
+        ::snakeSize = 20;
+        head.x = 400;
+        head.y = 300;
+        dir = 0;
+    }
+    for (auto it = food.begin(); it != food.end(); ) {
+        bool collisionWithWall = false;
+
+    
+        if (it->x < wallRect1.x + wallRect1.w &&
+            it->x + it->w > wallRect1.x &&
+            it->y < wallRect1.y + wallRect1.h &&
+            it->y + it->h > wallRect1.y) {
+            collisionWithWall = true;
+        }
+
+        if (it->x < wallRect2.x + wallRect2.w &&
+            it->x + it->w > wallRect2.x &&
+            it->y < wallRect2.y + wallRect2.h &&
+            it->y + it->h > wallRect2.y) {
+            collisionWithWall = true;
+        }
+
+        if (it->x < wallRect3.x + wallRect3.w &&
+            it->x + it->w > wallRect3.x &&
+            it->y < wallRect3.y + wallRect3.h &&
+            it->y + it->h > wallRect3.y) {
+            collisionWithWall = true;
+        }
+
+
+        if (collisionWithWall) {
+            it = food.erase(it);
+            SDL_Rect newFoodRect{rand() % 780, rand() % 580, 20, 20};
+            food.emplace_back(newFoodRect);
+        } else {
+            ++it;
+        }
+    }
+
+if(head.x == 780 || head.x == 20 || head.y == 20 || head.y == 580)
 {
     ::snakeSize = 20; 
         head.x = 400;
@@ -157,31 +212,38 @@ rq.push_front(head);
 while(rq.size() > snakeSize)
 rq.pop_back();
 
+
 }
-/*void renderText(const string &text, const SDL_Color &color, int x, int y) {
-    SDL_Surface *surface = TTF_RenderText_Solid(font, text.c_str(), color);
-    if (!surface) {
-        cerr << "Error rendering text: " << TTF_GetError() << endl;
-        return;
-    }
-
-    SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
-    if (!texture) {
-        cerr << "Error creating texture from surface: " << SDL_GetError() << endl;
-        SDL_FreeSurface(surface);
-        return;
-    }
-
-    SDL_Rect textRect = {x, y, surface->w, surface->h};
-    SDL_RenderCopy(renderer, texture, nullptr, &textRect);
-
-    SDL_FreeSurface(surface);
-    SDL_DestroyTexture(texture);
-}*/
 
 void render() {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+
+    int borderWidth = 20;
+
+    SDL_Rect topBorderRect{0, 0, 800, borderWidth};
+    SDL_RenderFillRect(renderer, &topBorderRect);
+
+    
+    SDL_Rect bottomBorderRect{0, 600 - borderWidth, 800, borderWidth};
+    SDL_RenderFillRect(renderer, &bottomBorderRect);
+
+    
+    SDL_Rect leftBorderRect{0, 0, borderWidth, 600};
+    SDL_RenderFillRect(renderer, &leftBorderRect);
+
+    SDL_Rect rightBorderRect{800 - borderWidth, 0, borderWidth, 600};
+    SDL_RenderFillRect(renderer, &rightBorderRect);
+
+SDL_Rect wallRect1{300, 200, 20, 200};
+    SDL_Rect wallRect2{300, 200, 200, 20};
+    SDL_Rect wallRect3{500, 200, 20, 200};
+
+    SDL_SetRenderDrawColor(renderer, 150, 150, 150, 255);
+    SDL_RenderFillRect(renderer, &wallRect1);
+    SDL_RenderFillRect(renderer, &wallRect2);
+    SDL_RenderFillRect(renderer, &wallRect3);
 
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
     for_each(food.begin(), food.end(), [&](auto &foodRect) {
@@ -192,18 +254,13 @@ void render() {
     for_each(rq.begin(), rq.end(), [&](auto &snake_segment) {
         SDL_RenderFillRect(renderer, &snake_segment);
     });
-   /*   SDL_Color textColor = {255, 255, 255};
-    string scoreText = "Score: " + to_string(score);
-    renderText(scoreText, textColor, 10, 10);
-*/
+   
     SDL_RenderPresent(renderer);
 }
 
 
 
 void destroyWindow() {
-   // TTF_CloseFont(font);
-   // TTF_Quit();
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
@@ -213,13 +270,14 @@ int main(int argc, char* argv[]) {
     run = initializeWindow();
     
 
-
+    
     while (run) {
         processInput();
         update();
         render();
-    
+     
     }
+    cout << "Final Score: " << score; 
 
     destroyWindow();
     return 0;
