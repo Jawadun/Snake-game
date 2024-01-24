@@ -12,7 +12,7 @@ int dir = 0;
 int run = 1;
 int snakeSize = 20;
 int score = 0, High, c=0; 
-bool img = true;
+bool img = true, im = true;
 deque <SDL_Rect> rq;
 vector<SDL_Rect> food;
 vector<SDL_Rect> Bonus;
@@ -23,7 +23,8 @@ SDL_Window* window = nullptr;
 SDL_Renderer* renderer = nullptr;
 TTF_Font *font = nullptr;
 Mix_Music* bgm;
-
+Mix_Music *wow;
+int backgroundMusicChannel = -1;
 int initializeWindow() {
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
         cerr << "SDL initialization error: " << SDL_GetError() << endl;
@@ -31,10 +32,9 @@ int initializeWindow() {
     }
 
     TTF_Init();
-    Mix_Init(MIX_INIT_MP3);
-    Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 1, 1024);
-    bgm = Mix_LoadMUS("bgm.mp3");
-    
+   Mix_Init(MIX_INIT_MP3);
+   Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 1, 1024);
+   bgm = Mix_LoadMUS("bgm.mp3");
     window = SDL_CreateWindow(NULL , SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_BORDERLESS);
     if (!window) {
         cerr << "Error creating SDL window: " << SDL_GetError() << endl;
@@ -63,8 +63,23 @@ void startscreen()
     SDL_RenderPresent(renderer);
 }
 void gOverScreen() {
+     while(im)
+    {
+         SDL_Event event;
+    SDL_PollEvent(&event);
 
-    IMG_Init(IMG_INIT_JPG);
+   switch(event.type)
+	{
+		case SDL_KEYDOWN:
+        if(event.key.keysym.sym==SDLK_SPACE)
+        {
+            im = false;
+        }
+		break;
+        
+	}
+ 
+         IMG_Init(IMG_INIT_JPG);
     SDL_RenderClear(renderer);
     SDL_Surface* imgS = IMG_Load("bg.jpg");
     if(imgS == NULL) cout << SDL_GetError() << endl;
@@ -72,7 +87,11 @@ void gOverScreen() {
     if(imgTex == NULL) cout << SDL_GetError() << endl;
     SDL_RenderCopy(renderer, imgTex, NULL, NULL);
     SDL_RenderPresent(renderer);
-    SDL_Delay(2000);
+    
+
+    }
+    im = true;
+   
 }
 
 void processInput() {
@@ -166,7 +185,7 @@ void update() {
 
             if (score != 0 && score % 7 == 0) {
                 ::snakeSize += 40;
-                score += 10;
+                score += 5;
 
                 
                 SDL_Rect newBonusRect{rand() % 780, rand() % 580, 40, 40};
@@ -186,7 +205,7 @@ void update() {
             head.y < it->y + it->h &&
             head.y + head.h > it->y) {
             ::snakeSize += 40;
-            score += 10;
+            score += 5;
 
             it = Bonus.erase(it);
 
@@ -445,7 +464,7 @@ int main(int argc, char* argv[]) {
 	}
  
         startscreen();
-        
+
     }
         update();
         render();
