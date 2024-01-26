@@ -23,7 +23,10 @@ SDL_Window* window = nullptr;
 SDL_Renderer* renderer = nullptr;
 TTF_Font *font = nullptr;
 Mix_Music* bgm;
-Mix_Music *wow;
+Mix_Music* wow;
+Mix_Chunk* eat;
+Mix_Chunk* beat;
+
 int backgroundMusicChannel = -1;
 int initializeWindow() {
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -32,9 +35,13 @@ int initializeWindow() {
     }
 
     TTF_Init();
-   Mix_Init(MIX_INIT_MP3);
-   Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 1, 1024);
-   bgm = Mix_LoadMUS("bgm.mp3");
+    Mix_Init(MIX_INIT_MP3);
+    Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 1, 1024);
+    bgm = Mix_LoadMUS("bgm.mp3");
+    wow = Mix_LoadMUS("end.mp3");
+    eat = Mix_LoadWAV("food.mp3");
+    beat = Mix_LoadWAV("wow.mp3");
+
     window = SDL_CreateWindow(NULL , SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_BORDERLESS);
     if (!window) {
         cerr << "Error creating SDL window: " << SDL_GetError() << endl;
@@ -63,6 +70,7 @@ void startscreen()
     SDL_RenderPresent(renderer);
 }
 void gOverScreen() {
+    Mix_PlayMusic(wow, -1);
      while(im)
     {
          SDL_Event event;
@@ -74,6 +82,11 @@ void gOverScreen() {
         if(event.key.keysym.sym==SDLK_SPACE)
         {
             im = false;
+            Mix_PauseMusic();
+        }
+        else if(event.key.keysym.sym==SDLK_ESCAPE)
+        {
+            exit(0);
         }
 		break;
         
@@ -87,7 +100,7 @@ void gOverScreen() {
     if(imgTex == NULL) cout << SDL_GetError() << endl;
     SDL_RenderCopy(renderer, imgTex, NULL, NULL);
     SDL_RenderPresent(renderer);
-    
+  
 
     }
     im = true;
@@ -105,7 +118,10 @@ void processInput() {
 		break;
 		case SDL_KEYDOWN:
 		if(event.key.keysym.sym == SDLK_ESCAPE)
+        {
 		run = 0;
+        img = false;
+        }
 		if(event.key.keysym.sym==SDLK_UP)
 	 {
            if(dir!=2){ dir = 1;
@@ -174,7 +190,7 @@ void update() {
     SDL_RenderFillRect(renderer, &head);
     SDL_Delay(5);
     }
-   for (auto it = food.begin(); it != food.end(); ) {
+    for (auto it = food.begin(); it != food.end(); ) {
         if (head.x < it->x + it->w &&
             head.x + head.w > it->x &&
             head.y < it->y + it->h &&
@@ -182,6 +198,7 @@ void update() {
             ::snakeSize += 20;
             score ++;
             c+= 1;
+            Mix_PlayChannel(-1, eat, 0);
 
             if (score != 0 && score % 7 == 0) {
                 ::snakeSize += 40;
@@ -206,17 +223,13 @@ void update() {
             head.y + head.h > it->y) {
             ::snakeSize += 40;
             score += 5;
-
+            Mix_PlayChannel(-1, beat, 0);
             it = Bonus.erase(it);
 
         } else {
             ++it;
         }
     }
-
-
-    
-
 
 for_each(rq.begin(), rq.end(), [&](auto &snake_segment) {
     if (head.x == snake_segment.x && head.y == snake_segment.y) {
@@ -225,14 +238,12 @@ for_each(rq.begin(), rq.end(), [&](auto &snake_segment) {
         head.y = 300;
         dir = 0;
         if(score!=0)
-          gOverScreen();
+        gOverScreen();
     }
 
 });
 for (auto it = food.begin(); it != food.end(); ) {
         if (score!=0 && score%7 ==0) {
-         
-            
             it = food.erase(it);
             SDL_Rect newFoodRect{rand() % 780, rand() % 580, 40, 40};
             food.emplace_back(newFoodRect);
@@ -276,7 +287,7 @@ for (auto it = food.begin(); it != food.end(); ) {
             High = score;
         }
         cout << "High score: " << High << endl;
-         score = 0;
+        score = 0;
         gOverScreen();
     }
 
@@ -336,16 +347,15 @@ for (auto it = food.begin(); it != food.end(); ) {
             ++it;
         }
     }
-    for (auto it = Bonus.begin(); it != Bonus.end(); ) {
+    /*for (auto it = Bonus.begin(); it != Bonus.end(); ) {
         if (score!=0 && score%7==0) { 
-            
             it = Bonus.erase(it);
             SDL_Rect newFoodRect{rand() % 780, rand() % 580, 40, 40};
             Bonus.emplace_back(newFoodRect);
         } else {
             ++it;
         }
-    }
+    }*/
 
 if(head.x == 780 || head.x == 20 || head.y == 20 || head.y == 580)
 {
@@ -448,10 +458,10 @@ int main(int argc, char* argv[]) {
     
     while (run) {
         processInput();
-         while(img)
+        while(img)
     {
-         SDL_Event event;
-    SDL_PollEvent(&event);
+        SDL_Event event;
+        SDL_PollEvent(&event);
 
    switch(event.type)
 	{
@@ -459,6 +469,12 @@ int main(int argc, char* argv[]) {
         if(event.key.keysym.sym==SDLK_RETURN)
         {
             img = false;
+            Mix_PauseMusic();
+        }
+        else if(event.key.keysym.sym == SDLK_ESCAPE)
+        {
+		run = 0;
+        img = false;
         }
 		break;
 	}
